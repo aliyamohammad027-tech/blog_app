@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body { font-family: Arial; background: #f9f9f9; }
+        .container { width: 800px; margin: 20px auto; }
+        input, textarea, button {
+            width: 100%; padding: 10px; margin: 5px 0;
+        }
+        .blog {
+            background: white; padding: 10px;
+            margin: 10px 0; border-radius: 5px;
+        }
+        button { background: green; color: white; border: none; }
+        .delete { background: red; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Add Blog</h2>
+    <input id="title" placeholder="Blog Title">
+    <textarea id="desc" placeholder="Description"></textarea>
+    <button onclick="addBlog()">Add Blog</button>
+
+    <h2>All Blogs</h2>
+    <div id="blogs"></div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+
+function addBlog() {
+    fetch("http://127.0.0.1:5000/add_blogs", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": token
+        },
+        body: JSON.stringify({
+            blog_title: title.value,
+            description: desc.value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadBlogs();
+    });
+}
+
+function loadBlogs() {
+    fetch("http://127.0.0.1:5000/get_all_blogs")
+    .then(res => res.json())
+    .then(data => {
+        blogs.innerHTML = "";
+        data.forEach(b => {
+            blogs.innerHTML += `
+                <div class="blog">
+                    <h3>${b.blog_title}</h3>
+                    <p>${b.description}</p>
+                    <button class="delete" onclick="deleteBlog(${b.blog_id})">Delete</button>
+                </div>
+            `;
+        });
+    });
+}
+
+function deleteBlog(id) {
+    fetch(`http://127.0.0.1:5000/delete_blogs/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": token
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        loadBlogs();
+    });
+}
+
+loadBlogs();
+</script>
+
+</body>
+</html>
